@@ -46,7 +46,8 @@ class Run extends Command
     private function readModels()
     {
         // Gets the files from the model path
-        $modelsPath = Util::location('models');
+        $dir = $this->getArg('dir', 'models');
+        $modelsPath = Util::location($dir);
         $files = Util::getFiles($modelsPath . '/*.php');
 
         // Gets the namespaced classname of each model
@@ -57,7 +58,9 @@ class Run extends Command
         }, $files);
 
         // Processes the models individually
-        foreach ($models as $model) $this->processModel(new $model);
+        foreach ($models as $model) {
+            $this->processModel(new $model);
+        }
     }
 
     /**
@@ -124,10 +127,10 @@ class Run extends Command
 
             // Saves the result to the model file
             file_put_contents($filename, $newContent);
-            $this->success("Model {$reflection->getShortName()} processed successfully.");
+            $this->success("Model \"{$reflection->getShortName()}\" processed successfully.");
         } catch (\Throwable $th) {
             $name = get_class($model);
-            $this->fail("Failed to process model $name. Error: " . $th->getMessage(), 0);
+            $this->fail("Failed to process model \"$name\". {$th->getMessage()}", 0);
         }
     }
 
@@ -215,9 +218,6 @@ class Run extends Command
                 return '\DateTime';
             case 'timestamp':
                 return 'int';
-            case 'bool':
-            case 'boolean':
-                return 'bool';
             default:
                 return $cast;
         }
