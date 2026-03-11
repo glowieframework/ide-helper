@@ -30,7 +30,7 @@ class Run extends Command
      * The command args signature (for help message).
      * @var string|null
      */
-    protected $signature = null;
+    protected $signature = "--dir";
 
     /**
      * The command script.
@@ -70,7 +70,7 @@ class Run extends Command
     private function processModel(Model $model)
     {
         try {
-            // Instantiates the model ReflectionClass
+            // Instantiates the model Reflection Class
             $reflection = new ReflectionClass($model);
 
             // Gets the database table columns
@@ -83,9 +83,7 @@ class Run extends Command
             $doc .= " *\n";
 
             // Gets the model casts property
-            $castsProperty = $reflection->getProperty('_casts');
-            $castsProperty->setAccessible(true);
-            $casts = $castsProperty->getValue($model);
+            $casts = $this->getModelProperty($model, '_casts');
 
             // Maps each column type
             foreach ($columns as $col) {
@@ -94,13 +92,7 @@ class Run extends Command
             }
 
             // Gets the model relationships
-            $parentReflection = new ReflectionClass($model);
-            while (!$parentReflection->hasProperty('_relations') && $parent = $parentReflection->getParentClass()) {
-                $parentReflection = $parent;
-            }
-            $relationsProperty = $parentReflection->getProperty('_relations');
-            $relationsProperty->setAccessible(true);
-            $relations = $relationsProperty->getValue($model);
+            $relations = $this->getModelProperty($model, '_relations');
 
             // Maps relationships
             foreach ($relations as $name => $relation) {
@@ -133,6 +125,26 @@ class Run extends Command
             $name = get_class($model);
             $this->fail("Failed to process model \"$name\". {$th->getMessage()}", 0);
         }
+    }
+
+    /**
+     * Gets a property from a model recursively.
+     * @param Model $model Model to get the property from.
+     * @param string $name Name of the property to get.
+     * @return mixed Returns the property value.
+     */
+    private function getModelProperty(Model $model, string $name)
+    {
+        $reflection = new ReflectionClass($model);
+
+        while (!$reflection->hasProperty($name) && $parent = $reflection->getParentClass()) {
+            $reflection = $parent;
+        }
+
+        $property = $reflection->getProperty($name);
+        $property->setAccessible(true);
+
+        return $property->getValue($model);
     }
 
     /**
@@ -197,7 +209,7 @@ class Run extends Command
      */
     private function mapCasting(string $cast)
     {
-        if (Util::startsWith($cast, 'callback')) return 'mixed';
+        if (Util::startsWith($cast, 'callback:')) return 'mixed';
         if (Util::startsWith($cast, 'date:')) return 'string';
         if (Util::startsWith($cast, 'timestamp:')) return 'string';
 
