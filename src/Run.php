@@ -179,12 +179,12 @@ class Run extends Command
             case 'belongs':
             case 'one-through':
                 $model = $relation['model'];
-                return "\{$model}|null";
+                return "\\$model|null";
             case 'many':
             case 'belongs-many':
             case 'many-through':
-                $type = Util::classname($relation['model']);
-                return "\Glowie\Core\Collection<{$type}>";
+                $model = $relation['model'];
+                return "\Glowie\Core\Collection<\\$model>";
             default:
                 return 'mixed';
         }
