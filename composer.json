@@ -1,0 +1,25 @@
+{
+    "name": "glowieframework/ide-helper",
+    "description": "Glowie plugin for type-hinting models",
+    "license": "MIT",
+    "homepage": "https://glowie.gabrielsilva.dev.br",
+    "support": {
+        "issues": "https://github.com/glowieframework/ide-helper/issues",
+        "source": "https://github.com/glowieframework/ide-helper"
+    },
+    "authors": [
+        {
+            "name": "Gabriel Silva",
+            "email": "glowie@gabrielsilva.dev.br",
+            "homepage": "https://glowie.gabrielsilva.dev.br"
+        }
+    ],
+    "require": {
+        "glowieframework/glowie-core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Glowie\\Plugins\\IdeHelper\\": "src/"
+        }
+    }
+}
