@@ -74,7 +74,8 @@ class Run extends Command
             $reflection = new ReflectionClass($model);
 
             // Gets the database table columns
-            $columns = $model->query("SHOW COLUMNS FROM {$model->getTable()}");
+            $table = $model->escapeIdentifier($model->getTable());
+            $columns = $model->query("SHOW COLUMNS FROM {$table}");
 
             // Creates the comment block
             $doc = "/**\n";
@@ -177,7 +178,8 @@ class Run extends Command
             case 'one':
             case 'belongs':
             case 'one-through':
-                return "{$relation['model']}|null";
+                $model = $relation['model'];
+                return "\{$model}|null";
             case 'many':
             case 'belongs-many':
             case 'many-through':
