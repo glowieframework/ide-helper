@@ -29,6 +29,8 @@ In your Glowie project, run in the terminal:
 php firefly ide-helper:run
 ```
 
+By default, models are processed from the `app/models` directory and all its subdirectories. To specify a different path, use the `--dir` argument.
+
 ## Credits
 
 IDE Helper and Glowie are actively developed by [Gabriel Silva](https://gabrielsilva.dev.br).

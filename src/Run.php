@@ -85,9 +85,12 @@ class Run extends Command
             // Gets the model casts property
             $casts = $this->getModelProperty($model, '_casts');
 
+            // Gets the model date columns
+            $dates = $this->getModelDates($model);
+
             // Maps each column type
             foreach ($columns as $col) {
-                $type = $this->getColumnType($col, $casts);
+                $type = $this->getColumnType($col, $casts, $dates);
                 $doc .= " * @property {$type} \${$col->Field}\n";
             }
 
@@ -120,11 +123,40 @@ class Run extends Command
 
             // Saves the result to the model file
             file_put_contents($filename, $newContent);
-            $this->success("Model \"{$reflection->getShortName()}\" processed successfully.");
+            $this->success("{$reflection->getName()} processed successfully.");
         } catch (\Throwable $th) {
             $name = get_class($model);
             $this->fail("Failed to process model \"$name\". {$th->getMessage()}", 0);
         }
+    }
+
+    /**
+     * Gets the model date columns.
+     * @param Model $model Model to get the date columns from.
+     * @return array Returns the date columns.
+     */
+    private function getModelDates(Model $model)
+    {
+        // Prepares the result
+        $dates = [];
+
+        // Checks for timestamps fields
+        $timestamps = $this->getModelProperty($model, '_timestamps');
+
+        if ($timestamps) {
+            $dates[] = $this->getModelProperty($model, '_createdField');
+            $dates[] = $this->getModelProperty($model, '_updatedField');
+        }
+
+        // Checks for soft deletes
+        $softDeletes = $this->getModelProperty($model, '_softDeletes');
+
+        if ($softDeletes) {
+            $dates[] = $this->getModelProperty($model, '_deletedField');
+        }
+
+        // Returns the date columns
+        return $dates;
     }
 
     /**
@@ -150,10 +182,11 @@ class Run extends Command
     /**
      * Gets the column data type.
      * @param DbRow $col Column definition from the database.
-     * @param array $casts Model casts property.
+     * @param array $casts (Optional) Model casts property.
+     * @param array $dates (Optional) Model date columns.
      * @return string Returns the column data type.
      */
-    private function getColumnType(DbRow $col, array $casts)
+    private function getColumnType(DbRow $col, array $casts = [], array $dates = [])
     {
         // Gets the field name
         $field = $col->Field;
@@ -162,6 +195,8 @@ class Run extends Command
         if (!empty($casts[$field])) {
             $cast = strtolower($casts[$field]);
             $type = $this->mapCasting($cast);
+        } else if (in_array($field, $dates)) {
+            $type = '\DateTime';
         } else {
             // Maps the column type
             $type = strtolower($col->Type);
